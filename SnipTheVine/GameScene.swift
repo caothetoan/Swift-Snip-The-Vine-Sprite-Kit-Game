@@ -39,6 +39,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
   private var nomNomSoundAction: SKAction!
   
   private var levelOver = false
+  private var vineCut = false
+  
+  let chomp = UIImpactFeedbackGenerator(style: .heavy)
+  let splash = UIImpactFeedbackGenerator(style: .light)
+  
   
   override func didMove(to view: SKView) {
     setUpPhysics()
@@ -207,7 +212,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
       
       run(splashSoundAction)
       
+      //When the pineapple flies offscreen, you'll add a light impact.
+      splash.impactOccurred()
+      
       switchToNewGameWithTransition(SKTransition.fade(withDuration: 1.0))
+      
+      levelOver = true
     }
   }
   
@@ -228,15 +238,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
       
       runNomNomAnimationWithDelay(0.15)
       
+      // MAKE sound
       run(nomNomSoundAction)
+      
+      // When our croc chomps down on the pineapple
+      chomp.impactOccurred()
       
       // transition to next level
       switchToNewGameWithTransition(SKTransition.doorway(withDuration: 1.0))
+      
+      levelOver = true
     }
     
   }
   
+  //
   fileprivate func checkIfVineCutWithBody(_ body: SKPhysicsBody) {
+    
+    if vineCut && !GameConfiguration.CanCutMultipleVinesAtOnce {
+      return
+    }
     
     let node = body.node!
     
@@ -258,6 +279,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
       crocodile.removeAllActions()
       crocodile.texture = SKTexture(imageNamed: ImageName.CrocMouthOpen)
       animateCrocodile()
+      
+      vineCut = true
+
     }
   }
   
@@ -299,4 +323,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
   }
   
+  //
+  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    vineCut = false
+  }
 }
